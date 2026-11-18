@@ -144,18 +144,10 @@ body{background:#fff}.cta,.toolbar,.tools,.note,.modal,#qrCorner,.low .panel:las
 
 <script>
 /* ===== 1) PASTE YOUR FIREBASE CONFIG HERE (Firebase console > Project settings > Your apps > Web) ===== */
-const FIREBASE_CONFIG={
- apiKey:"PASTE_API_KEY",
- authDomain:"innovday.firebaseapp.com",
- projectId:"innovday",
- storageBucket:"innovday.firebasestorage.app",
- messagingSenderId:"636984863924",
- appId:"1:636984863924:web:4b5162b2981d89a3e9fbe1"
-};
+const FIREBASE_CONFIG={apiKey:"PASTE_API_KEY",authDomain:"PASTE.firebaseapp.com",projectId:"PASTE_PROJECT_ID",appId:"PASTE_APP_ID"};
 </script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 const CATS={
@@ -164,11 +156,11 @@ const CATS={
  team:{n:"Teamwork & Culture",t:"Stronger together. Further always.",c:"#7b4bd1",e:"🤝"},
  inn:{n:"Innovation",t:"Bold ideas. Real impact.",c:"#f28a1f",e:"💡"},
  well:{n:"Well-being",t:"Healthier people. Happier teams.",c:"#e2405e",e:"❤️"}};
-const KEY="smypc_wall_v1",MY="smypc_wall_mine",LIMIT=500;
+const KEY="smypc_wall_v1",MY="smypc_wall_mine",LIMIT=150;
 const LOCAL=/PASTE/.test(FIREBASE_CONFIG.apiKey)||typeof firebase==="undefined";
 const DISPLAY=new URLSearchParams(location.search).has("display");
 const PROMPTS=["What is your dream for SMYPC?","How will you make sure you are ready for what's next?","What's next for you in SMYPC?"];
-let items=[],mine={},filter="all",mode="commit",target=null,photo=null,stream=null,facing="user",fdb=null,authReady=null,openC=new Set(),busy=false;
+let items=[],mine={},filter="all",mode="commit",target=null,photo=null,stream=null,facing="user",fdb=null,openC=new Set(),busy=false;
 const now=Date.now(),H=36e5;
 const seed=[["Maria Santos","Operations","sus","I commit to reducing paper consumption by 50% this year.",18,12],["Johanne Dumaquit","Human Resources","lrn","I commit to completing a professional certification in 2026.",22,15],["Sarah Reyes","Marketing","team","I will recognize a colleague's efforts every week.",25,18],["Mark Castillo","Product Development","inn","I will propose one improvement idea every quarter.",13,8],["Liza Mendoza","Customer Service","well","I commit to prioritizing my physical and mental wellness by taking regular breaks.",28,21]]
  .map((s,i)=>({id:"s"+i,name:s[0],dept:s[1],cat:s[2],text:s[3],photo:null,ts:now-(i+1)*H,likes:s[4],hearts:s[5],comments:[]}));
@@ -186,10 +178,9 @@ function init(){
   note("Demo mode: entries are saved on this device only. Add your Firebase config to share the wall with everyone.");render();
  }else{
   firebase.initializeApp(FIREBASE_CONFIG);fdb=firebase.firestore();
-  authReady=firebase.auth().signInAnonymously().catch(e=>{note("Sign-in failed ("+e.code+"). Enable Anonymous authentication in Firebase.");throw e});
-  authReady.then(()=>fdb.collection("commitments").orderBy("ts","desc").limit(LIMIT).onSnapshot(
+  fdb.collection("commitments").orderBy("ts","desc").limit(LIMIT).onSnapshot(
    s=>{items=s.docs.map(d=>({likes:0,hearts:0,comments:[],...d.data(),id:d.id}));render()},
-   e=>{note("Cannot load the wall ("+e.code+"). Check your internet or Firestore rules.");render()}));
+   e=>{note("Cannot load the wall ("+e.code+"). Check your internet or Firestore rules.");render()});
  }
  if(DISPLAY)showQR(true);
 }
@@ -220,7 +211,7 @@ function react(id,f,k){
  const it=items.find(x=>x.id===id),key=id+k,d=mine[key]?-1:1;
  if(d<0)delete mine[key];else mine[key]=1;
  it[f]=Math.max(0,(it[f]||0)+d);save();render();
- if(!LOCAL)fdb.collection("commitments").doc(id).update({[f]:firebase.firestore.FieldValue.increment(d)}).catch(()=>note("Reaction not saved. Check your connection.")));
+ if(!LOCAL)fdb.collection("commitments").doc(id).update({[f]:firebase.firestore.FieldValue.increment(d)}).catch(()=>note("Reaction not saved. Check your connection."));
 }
 function stats(){
  const people=new Set([...items.map(i=>i.name.toLowerCase()),...items.flatMap(i=>(i.comments||[]).map(c=>c.name.toLowerCase()))]);
